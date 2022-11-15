@@ -1,0 +1,391 @@
+alias mongod="/c/Program\ files/MongoDB/Server/6.0/bin/mongod.exe"
+alias mongo="/c/Program\ Files/MongoDB/Server/6.0/bin/mongo.exe"
+
+
+C:\Program Files\MongoDB\Server\6.0\data\
+
+C:\Program Files\MongoDB\Server\6.0\data\
+
+
+----mongaDB pure form----
+
+check versioin
+mongod --version
+mongo --version
+start server 
+
+mongod in hyper and mongo in mongosh
+
+mongodb commands  // https://www.mongodb.com/docs/manual/crud/
+------------------
+1)Create Operations
+
+c:show dbs- shows the list of databases
+-----------------------------------------------------
+c:use databaseName- to create new database
+{
+mongo> use shopDB
+switched to db shopDB
+shopDB>  
+}
+--------------------------------------------------------
+then if we list all database is wont come inthe list because nothing is there init
+shopDB> show dbs
+admin   40.00 KiB
+config  60.00 KiB
+local   40.00 KiB
+-----------------------------------------------------------
+check which database currently you are using 
+c:db
+shopDB>  
+------------------------------------------------------------
+deleting the database fruit
+
+mongo> show dbs
+admin   40.00 KiB
+config  72.00 KiB
+fruit   40.00 KiB   <-
+local   40.00 KiB
+shopDB  72.00 KiB
+mongo> use fruit    <- first have to move into that database to delete
+switched to db fruit
+fruit> db.dropDatabase()   <- write this // c:db.dropDatabase()
+{ ok: 1, dropped: 'fruit' }
+fruit> show dbs            <- checking 
+admin   40.00 KiB
+config  72.00 KiB
+local   40.00 KiB
+shopDB  72.00 KiB
+fruit>                  <- removed
+------------------------------------------------------------
+In mongodb tables are called "collection" 
+
+MongoDB provides the following methods to insert documents into a collection:
+
+db.collection.insertOne()New in version 3.2
+
+db.collection.insertMany()New in version 3.2
+
+____________________           V
+shopDB> db.products.insertOne({_id:1,name:"pen",price:1.20})
+{ acknowledged: true, insertedId: 1 }
+shopDB> 
+____________________
+to check the all collectons
+
+c:show collections
+
+shopDB> show collections
+products
+shopDB>                                                                            ---------------------------------------------------------------
+
+creating second obj in products collection
+shopDB> db.products.insertOne({id:2,name:"pencil",price:0.8})
+{                              ^
+  acknowledged: true,
+  insertedId: ObjectId("637174eecb3d6202ee9e9165")   //here obj id is too long                                                    // because of underscore is not                                                    //  given before id see up
+}
+shopDB>             
+----------------------------------------------------------
+
+2)Read Operations
+
+shopDB> db.products.find()     //find method have two parameters query,projection,options
+[
+  { _id: 1, name: 'pen', price: 1.2 },
+  {
+    _id: ObjectId("637174eecb3d6202ee9e9165"),
+    id: 2,
+    name: 'pencil',
+    price: 0.8
+  }
+]
+shopDB>      
+----------------------------------------------------------------                   using query to find sepcific data  example:finding name:pencil in products collection
+
+shopDB> db.products.find({name:"pencil"})
+[
+  {
+    _id: ObjectId("637174eecb3d6202ee9e9165"),
+    id: 2,
+    name: 'pencil',
+    price: 0.8
+  }
+]
+shopDB>            
+
+-----
+https://www.mongodb.com/docs/manual/reference/operator/query/ - link list of query
+
+-------
+find the price greater the 1
+
+shopDB> db.products.find({price:{$gt:1}})
+[ { _id: 1, name: 'pen', price: 1.2 } ]
+shopDB>   
+                                          
+becasue of pencil price is less then 1 it doesn't came up in the list
+----------
+searching for the id=1 then print name 
+
+shopDB> db.products.find({_id:1},{name:1})  //here in second {} bracket where name //is the projections,we set name:1 and 1 means print and 0 means not prints
+[ { _id: 1, name: 'pen' } ]
+shopDB>         
+id default prints but we can stop by writing id:0 seen down
+----------
+
+shopDB> db.products.find({_id:1},{name:1,_id:0})
+[ { name: 'pen' } ]
+shopDB>       
+---------------------------------------------------------------
+
+3)update operations
+
+adding the new data stock:33 in id:1
+using updateOne method
+
+shopDB> db.products.updateOne({_id:1},{$set:{stock:33}})
+{      //  (where you want to update) (what you want to update)
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+shopDB>    
+
+-------------------
+reading
+
+shopDB> db.products.find()
+[
+  { _id: 1, name: 'pen', price: 1.2, stock: 33 },
+  {
+    _id: ObjectId("637174eecb3d6202ee9e9165"),
+    id: 2,
+    name: 'pencil',
+    price: 0.8
+  }
+]
+shopDB>     
+0k
+-----------------------
+
+4)delete operatioins
+
+
+shopDB> db.products.find()     //find method have two parameters query,projection,options
+[
+  { _id: 1, name: 'pen', price: 1.2 },
+  {
+    _id: ObjectId("637174eecb3d6202ee9e9165"),
+    id: 2,
+    name: 'pencil',
+    price: 0.8
+  }
+]
+shopDB> 
+
+shopDB> db.products.deleteOne({id:2})     //////here here
+{ acknowledged: true, deletedCount: 1 }
+
+shopDB> db.products.find()
+[ { _id: 1, name: 'pen', price: 1.2, stock: 33 } ]
+shopDB>                                                                            
+
+
+-------------------------------------------------------------------------
+5)inserting embeded array of objs
+
+
+
+shopDB> db.products.insert({
+... id:2,
+... name:"pencil",
+... price:.3,
+... stock:12,
+... reviews:[{
+... name:"andy",
+... rating:5,
+... review:"cool pencil"
+... }]
+... }
+... )
+DeprecationWarning: Collection.insert() is deprecated. Use insertOne, insertMany, or bulkWrite.
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId("63724b9905d50d78e4465549") }
+}
+shopDB> db.products.find()
+[
+  { _id: 1, name: 'pen', price: 1.2, stock: 33 },
+  {
+    _id: ObjectId("63724b9905d50d78e4465549"),
+    id: 2,
+    name: 'pencil',
+    price: 0.3,
+    stock: 12,
+    reviews: [ { name: 'andy', rating: 5, review: 'cool pencil' } ]
+  }
+]
+shopDB>    
+
+-----------
+inserting rubber
+
+
+shopDB> db.products.insertOne(
+...   {
+...     _id:3,
+...     name:"rubber",
+...     price:1.4,
+...     stock:23,
+...     reviews:[
+...       {
+...         name:"maxi",
+...         rating:5,
+...         review:"awesome eraser"
+...       }
+...     ]
+...   }
+... )
+{ acknowledged: true, insertedId: 3 }
+shopDB> db.products.find()
+[
+  { _id: 1, name: 'pen', price: 1.2, stock: 33 },
+  {
+    _id: ObjectId("63724b9905d50d78e4465549"),
+    id: 2,
+    name: 'pencil',
+    price: 0.3,
+    stock: 12,
+    reviews: [ { name: 'andy', rating: 5, review: 'cool pencil' } ]
+  },
+  {
+    _id: 3,
+    name: 'rubber',
+    price: 1.4,
+    stock: 23,
+    reviews: [ { name: 'maxi', rating: 5, review: 'awesome eraser' } ]
+  }
+]
+shopDB>   
+
+
+------------------------------
+inserting sharpies
+
+db.products.insertOne(
+  {
+    _id:4,
+    name:"sharpies",
+    price:1.4,
+    stock:23,
+    reviews:[
+      {
+        name:"maxi",
+        rating:5,
+        review:"awesome eraser"
+      },
+      {
+        name:"choki",
+        rating:5,
+        review:"yeah"
+      }
+    ]
+  }
+)
+{ acknowledged: true, insertedId: 4 }
+shopDB> db.products.find()
+[
+  { _id: 1, name: 'pen', price: 1.2, stock: 33 },
+  {
+    _id: ObjectId("63724b9905d50d78e4465549"),
+    id: 2,
+    name: 'pencil',
+    price: 0.3,
+    stock: 12,
+    reviews: [ { name: 'andy', rating: 5, review: 'cool pencil' } ]
+  },
+  {
+    _id: 3,
+    name: 'rubber',
+    price: 1.4,
+    stock: 23,
+    reviews: [ { name: 'maxi', rating: 5, review: 'awesome eraser' } ]
+  },
+  {
+    _id: 4,
+    name: 'sharpies',
+    price: 1.4,
+    stock: 23,
+    reviews: [
+      { name: 'maxi', rating: 5, review: 'awesome eraser' },
+      { name: 'choki', rating: 5, review: 'yeah' }
+    ]
+  }
+]
+shopDB>                                                                            
+
+----------------------------------------------
+another method of relationship
+
+
+db.products.insertOne(
+  {
+    _id:1,
+    name:"candy",
+    price:22.3,
+    stock:32
+  },
+  {
+    _id:2,
+    name:"choco",
+    price:32,
+    stock:24
+  }
+
+  {
+    orderNumber:434,
+    productsOrdered:[1,2]  //these are the ids of the product we can access them                             from here
+  }
+)
+
+--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+----mongoDB with nodejs-----
+
+native mongodb drivers link old
+MongoDB Node.js Driver 
+https://mongodb.github.io/node-mongodb-native/3.1/quick-start/quick-start/
+
+MongoDB Node.js Driver new link
+https://www.mongodb.com/docs/drivers/node/v4.5/
+
+
+ we have two options -> MongoDB native Drivers and -> ODM- object document mapper also called mongoose
+
+most popular way is to use package called mongoose.reasons is vastly simplify and cutdown the code work with your MongoDB database
+
+mongoose allows nodejs app which speaks js objects to speak with mongoDB database 
+
+which speaks in language of documnets and collections
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
